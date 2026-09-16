@@ -1,4 +1,4 @@
-name: Release __MODULE__
+name: Release Blockchain UI
 
 # Manually-triggered release for a single submodule. Delegates the
 # build / verify / sign / publish pipeline to the local
