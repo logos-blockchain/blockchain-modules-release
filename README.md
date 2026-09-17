@@ -145,7 +145,7 @@ in `logos-repo.json` so clients trust your signature.
 
 This catalog publishes four variants:
 
-| Variant | Runner | Built from |
+| Variant | Default runner | Built from |
 |---|---|---|
 | `darwin-arm64` | `macos-latest` | native |
 | `linux-amd64` | `ubuntu-latest` | native |
@@ -162,6 +162,39 @@ the other three as a partial release — the sidecar records which in
 Drop `windows-x86_64` from the `variants:` line in
 `_release-module.yml` if you'd rather not see a red leg on modules that
 don't support it.
+
+## Runners and the Nix cache
+
+Out of the box, every job runs on a GitHub-hosted runner. Nix reads the
+public Logos binary cache (`cache.nix.logos.co`), which needs no setup and
+no credentials.
+
+To run jobs somewhere else, set repository (or organization) variables.
+No workflow edits are needed:
+
+| Variable | Moves | Value |
+|---|---|---|
+| `RELEASE_BUILD_RUNNERS` | the build legs, per variant | JSON object: variant → label, or array of labels |
+| `RELEASE_RUNNER` | every other job | a label, or a JSON array of labels |
+
+```bash
+gh variable set RELEASE_BUILD_RUNNERS --body '{"linux-amd64": ["self-hosted", "Linux", "X64"], "darwin-arm64": ["self-hosted", "macOS", "ARM64"]}'
+```
+
+A variant you leave out stays on its default runner. The exception is
+`windows-x86_64`, which follows `linux-amd64`.
+
+Pushing to the Logos cache is only for Logos-owned catalogs. Logos infra
+provisions such a repo with three things:
+
+- an `ATTIC_ENDPOINT` variable;
+- an `ATTIC_TOKEN_CI` secret;
+- a `public-cache` environment holding `ATTIC_TOKEN_PUBLIC`.
+
+`_release-module.yml` picks all of them up on its own. Releases from
+`main` then push their builds to the public cache, and other branches push
+to the `ci` cache. Other forks have none of these, so their cache stays
+read-only.
 
 ## Pinning the action version
 
