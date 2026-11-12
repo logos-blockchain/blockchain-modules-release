@@ -15,13 +15,15 @@ on:
   schedule:
     - cron: '17 */6 * * *'
 
-# Forked repos default to a read-only GITHUB_TOKEN.
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   rebuild:
-    uses: logos-co/logos-modules-release-action/.github/workflows/rebuild-index.yml@9cbfec556e829d0b483b0deaf8523a314382488b # logos-co/logos-modules-release-action#27, revert to @v1 once merged
+    # Replaces index.json in the `index` release.
+    permissions:
+      contents: write
+    uses: logos-co/logos-modules-release-action/.github/workflows/rebuild-index.yml@bbdc52871dc4305c8007923e1b08738ad2dd6b50 # v1.8
     with:
       # Unset means GitHub-hosted; see "Runners and the Nix cache" in the README.
       runner: ${{ vars.RELEASE_RUNNER }}

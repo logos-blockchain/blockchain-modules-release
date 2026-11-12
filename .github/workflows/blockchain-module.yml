@@ -22,14 +22,20 @@ on:
         type: boolean
         default: false
 
-# Forked repos default to a read-only GITHUB_TOKEN.
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   release:
-    uses: ./.github/workflows/_release-module.yml
+    # Creates the module's release and uploads its assets.
+    permissions:
+      contents: write
+    uses: $/.github/workflows/_release-module.yml
     with:
       module_path: submodules/logos-blockchain-module
       force_build: ${{ inputs.force_build }}
-    secrets: inherit
+    # Only the secrets _release-module.yml uses.
+    secrets:
+      ATTIC_TOKEN_CI: ${{ secrets.ATTIC_TOKEN_CI }}
+      ATTIC_TOKEN_PUBLIC: ${{ secrets.ATTIC_TOKEN_PUBLIC }}
+      LOGOS_SIGNING_KEY: ${{ secrets.LOGOS_SIGNING_KEY }}
