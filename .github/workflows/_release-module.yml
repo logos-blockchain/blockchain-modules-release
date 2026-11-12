@@ -9,7 +9,7 @@ name: _release-module
 # The leading underscore marks it "private": it has only `workflow_call`
 # (no `workflow_dispatch`), so it never shows up as a runnable item in
 # the Actions UI. It can only be invoked from a sibling workflow via
-# `uses: ./.github/workflows/_release-module.yml`.
+# `uses: $/.github/workflows/_release-module.yml`.
 #
 # ── Signing modes ────────────────────────────────────────────────────
 # This catalog publishes UNSIGNED (`signing_mode: none`) — matching the
@@ -45,15 +45,27 @@ on:
           the same version, overwriting its assets.
         type: boolean
         default: false
+    secrets:
+      ATTIC_TOKEN_CI:
+        description: "Push token for the Logos `ci` Attic cache."
+        required: false
+      ATTIC_TOKEN_PUBLIC:
+        description: "Passed empty: the public-cache environment supplies the value."
+        required: false
+      LOGOS_SIGNING_KEY:
+        description: "Ed25519 JWK, read only with `signing_mode: inline`."
+        required: false
 
-# Forked repos default to a read-only GITHUB_TOKEN; the downstream
-# release job needs to create releases / upload assets.
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   release:
-    uses: logos-co/logos-modules-release-action/.github/workflows/release.yml@v1.6
+    # Creates the module's release, uploads its assets and, on a forced
+    # rebuild, moves its tag.
+    permissions:
+      contents: write
+    uses: logos-co/logos-modules-release-action/.github/workflows/release.yml@0e2e1ff09f3f207a0ff6285e33551ede1bdfff2d # v1.6
     with:
       module_path: ${{ inputs.module_path }}
 
@@ -97,8 +109,7 @@ jobs:
       #        -o "$LGX_SIGNED_OUT" \
       #        "$JENKINS_SIGNING_URL"
 
-    # Reaches here via `secrets: inherit` from each caller, so the
-    # per-module files don't need to know which secret names matter.
+    # Each caller passes these by name; see `on.workflow_call.secrets`.
     secrets:
       # Both are empty outside Logos-provisioned repos, leaving the cache
       # read-only. ATTIC_TOKEN_PUBLIC is empty here even inside them: it lives

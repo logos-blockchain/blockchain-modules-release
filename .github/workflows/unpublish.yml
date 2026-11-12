@@ -32,14 +32,15 @@ on:
         type: boolean
         default: false
 
-# Deleting releases/tags + dispatching the index rebuild needs write;
-# forked repos default to a read-only GITHUB_TOKEN.
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   unpublish:
-    uses: logos-co/logos-modules-release-action/.github/workflows/unpublish.yml@v1
+    # Deletes releases and tags, then dispatches the index rebuild.
+    permissions:
+      contents: write
+    uses: logos-co/logos-modules-release-action/.github/workflows/unpublish.yml@bbdc52871dc4305c8007923e1b08738ad2dd6b50 # v1.8
     with:
       module:      ${{ inputs.module }}
       version:     ${{ inputs.version }}
